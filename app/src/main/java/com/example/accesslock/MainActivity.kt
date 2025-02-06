@@ -47,14 +47,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AccessLockTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    Greeting(
-//                        name = "Android",
-//                        modifier = Modifier.padding(innerPadding)
-//                    )
-
-
-                    ListInstalledApps()
-
+                    ListInstalledApps(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -62,14 +55,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ListInstalledApps() {
-      val context = LocalContext.current
-//    val pm = context.packageManager
-//    val appInfos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//        pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0L))
-//    } else {
-//        pm.getInstalledApplications(0)
-//    }
+fun ListInstalledApps(modifier: Modifier) {
+    val context = LocalContext.current
 
     // Right now this is magic to me, do not fully understand
     val pm = context.packageManager
@@ -85,12 +72,16 @@ fun ListInstalledApps() {
         pm.queryIntentActivities(mainIntent, 0)
     }
 
-    LazyColumn{
+    resolvedInfos.sortBy { it.activityInfo.applicationInfo.loadLabel(pm).toString() }
+
+    LazyColumn(modifier = modifier){
         items(resolvedInfos) { app ->
             var checked by remember { mutableStateOf(true)}
 
             Card(modifier = Modifier.padding(8.dp).fillMaxWidth()) {
                 Row() {
+
+                    Switch(checked = checked, onCheckedChange = { checked = it })
 
                     val bitmap = drawableToBitmap(app.activityInfo.loadIcon(pm)).asImageBitmap()
                     Image(bitmap = bitmap, contentDescription = "app icon", modifier = Modifier.size(48.dp).padding(8.dp))
@@ -98,7 +89,6 @@ fun ListInstalledApps() {
                         text = app.activityInfo.applicationInfo.loadLabel(pm).toString(),
                         modifier = Modifier.padding(12.dp)
                     )
-                    Switch(checked = checked, onCheckedChange = { checked = it })
                 }
             }
         }
