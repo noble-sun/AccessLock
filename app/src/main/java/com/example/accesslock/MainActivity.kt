@@ -1,5 +1,7 @@
 package com.example.accesslock
 
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -8,18 +10,17 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -44,6 +45,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.accesslock.ui.theme.AccessLockTheme
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.view.accessibility.AccessibilityManager
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,10 +59,59 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     topBar = { TopAppBar() }
                 ) { innerPadding ->
-                    ListInstalledApps(modifier = Modifier.padding(innerPadding))
+                    /* To monitor events that check if the an app is launched or in the foreground
+                    we need access to the accessibility services, and that is a system wide permission
+                    that the user need to allow manually. This will check if the the permission is
+                    granted to the app or not, and if its not, bring a popup message that will prompt
+                    the user to the Accessibility setting to grant permission.
+                    */
+
+                    /* The Accessibility Service is a multi file configuration in the app, starting
+                    on the class AccessLockAccessibilityService
+                     */
+                    if (!isAccessibilityServiceEnabled(this)) {
+                        showAccessibilityDialog()
+                    } else {
+                        // If the app already has permission, list all the apps installed.
+
+                        /* When you grant permission to the app and go back from the system settings
+                        to the app, the list will not render, not sure why, and not going to fix now.
+                        Just close the app and open it again =)
+                         */
+                        ListInstalledApps(modifier = Modifier.padding(innerPadding))
+                    }
                 }
             }
         }
+    }
+
+    private fun showAccessibilityDialog() {
+
+        AlertDialog.Builder(this)
+            .setTitle("Accessibility Service Permission")
+            .setMessage("Please allow AccessLock to use Accessibility Settings to use the app.")
+            .setPositiveButton("Enable") { _, _ ->
+                // This will redirect to user to the Accessibility Settings
+                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                startActivity(intent)
+            }
+            .setNegativeButton("Not Now") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(false) // Prevent user from dismissing by touching outside
+            .show()
+    }
+
+    // This checks if the app has the permission
+    private fun isAccessibilityServiceEnabled(context: Context): Boolean {
+        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
+        for (enabledService in enabledServices) {
+            if (enabledService.id.contains("com.example.accesslock")) {
+                return true
+            }
+        }
+        return false
     }
 }
 
