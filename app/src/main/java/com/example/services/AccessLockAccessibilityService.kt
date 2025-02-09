@@ -1,9 +1,11 @@
 package com.example.services
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityEvent.eventTypeToString
+import com.example.accesslock.ui.ScreenAuthenticationActivity
 
 /* We need to configured this service in a tag <service> on the AndroidManifest.xml, and then setup other
 configurations for the service in another xml file. Ideally I could create a more detailed readme for
@@ -22,11 +24,11 @@ class AccessLockAccessibilityService : AccessibilityService() {
         allowed when configuring the service on the AndroidManifest.xml, so for now this is just a
         static list to test if it works. Need to figure it out another way to dynamically set this up.
          */
+
         val packageNames = listOf(
             "com.google.android.deskclock",
             "com.google.android.calendar",
             "com.android.chrome",
-            "com.android.settings",
             "com.google.android.youtube",
             "com.example.accesslock"
         )
@@ -45,9 +47,9 @@ class AccessLockAccessibilityService : AccessibilityService() {
             variable above, do what you need to do, which right now is nothing.
              */
             packageName?.let {
-                Log.d(TAG, "PACKAGE NAME IS $it")
+//                Log.d(TAG, "PACKAGE NAME IS $it")
                 if (packageNames.contains(it)) {
-                    Log.d(TAG, "Needs to lock app Launched: $it")
+//                    Log.d(TAG, "Needs to lock app Launched: $it")
                     showLockScreenOverlay()
                 }
             }
@@ -55,8 +57,33 @@ class AccessLockAccessibilityService : AccessibilityService() {
     }
 
     private fun showLockScreenOverlay() {
-        Log.d(TAG, "SHOW AUTHENTICATION SCREEN")
+        /* This checks if the variable is true or false. If its true, it means that the authentication
+        screen is in the foreground, so it will not try to call the activity that renders the screen
+        again. If its false, it will start the activity for the authentication screen.
+         */
+        if (!ScreenAuthenticationActivity.isAuthenticationScreenVisible.get()) {
+            val intent = Intent(this, ScreenAuthenticationActivity::class.java)
+            /* FLAG_ACTIVITY_NEW_TASK: when you start an activity from a service, the activity needs
+            a task, so the activity might try to join the task of the app that you tried to open, which
+            is not nice. This flag creates a new task for the ScreenAuthenticationActivity. A task
+            meaning a stack of activities, kind of a history of the workflow of activities you accessed
+            in an app.
+            FLAG_ACTIVITY_CLEAR_TASK: If we already have an instance of ScreenAuthenticationActivity,
+            we bring that forward and clear the other activities that were on top of it, so when you
+            trigger the dismiss or go back action, you don't have to go back several times.
+            FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS: Since this is just supposed to be a authentication
+            screen, it should not appear in the recent list of apps opened.
+             */
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+            )
+            startActivity(intent)
+        }
     }
 
-    override fun onInterrupt() {}
+    override fun onInterrupt() {
+        Log.d(TAG, "Accessibility Service interrupted")
+    }
 }

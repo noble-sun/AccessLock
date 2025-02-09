@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
-
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
@@ -27,6 +27,11 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.example.accesslock.ui.ScreenAuthenticationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AccessLock">
         </activity>
 
         <service
