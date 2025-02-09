@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">AccessLock</string>
+    <string name="accessibility_description">This service is used to lock specific apps to enhance security.</string>
+    <string name="accessibility_service_label">Allow AccessLock to handle Accessibility Events</string>
 </resources>
