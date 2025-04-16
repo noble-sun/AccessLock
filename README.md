@@ -12,4 +12,4 @@ There are multiple apps like this on the Play Store, but I want my without adds.
 - [ ] Don't allow taking print screens for those times there's a delay when rendering the authentication screen
 ---
 
-OBS: I effectively did nothing in here yet =(
+OBS: I effectively did nothing in here, for now this only render the list of apps on the phone =(
