@@ -1,6 +1,6 @@
 # AccessLock
 
-AccessLock is a Android app that locks the applications you want behind an authentication via fingerprint or the phone password, so that you can have an extra layer of protection for those apps that do not provide this kind of feature.
+AccessLock is an Android app that locks the applications you want behind an authentication via fingerprint or the phone password, so that you can have an extra layer of protection for those apps that do not provide this kind of feature.
 There are multiple apps like this on the Play Store, but I want my without adds.
 
 ---
